@@ -1,38 +1,94 @@
 #include "monty.h"
 
 /**
- * _get_handler - checks for a registered handler for a given opcode
- * @opcode: the opcode to get handler for
- *
- * Return: the handler found. if no valid handler exists,
- * a default NULL-based handler is returned
+ * push_handler - handles push operation
+ * @s: pointer to stack
+ * @l: line number
  */
-instruction_t _get_handler(const char *opcode)
+void push_handler(stack_t **s, unsigned int l)
 {
-	int i;
-	static instruction_t handlers[] = {
-		{"push", push_handler},
-		{"pall", pall_handler},
-		{"pchar", pchr_handler},
-		{"pstr", pstr_handler},
-		{"rotl", rotl_handler},
-		{"rotr", rotr_handler},
-		{"pop", pop_handler},
-		{"add", add_handler},
-		{"nop", nop_handler},
-		{"swap", swap_handler},
-		{"sub", sub_handler},
-		{"mul", mul_handler},
-		{"pint", pint_handler},
-		{"div", div_handler},
-		{"mod", mod_handler},
-		{NULL, NULL}
-	};
+	int n;
+	(void)s;
+	(void)l;
 
-	for (i = 0; handlers[i].opcode != NULL; i++)
+	if (!global.arg || !is_number(global.arg))
 	{
-		if (strcmp(opcode, handlers[i].opcode) == 0)
-			break;
+		/* error */
+		fprintf(stderr, "L%u: usage: push integer\n", l);
+		global.quit = EXIT_FAILURE;
+		return;
 	}
-	return (handlers[i]);
+	n = atoi(global.arg);
+	if (global.mode == STACK)
+		push(n);
+	else
+		enqueue(n);
+}
+
+
+/**
+ * pop_handler - handles pop operation
+ * @s: pointer to stack
+ * @l: line number
+ */
+void pop_handler(stack_t **s, unsigned int l)
+{
+	(void)s;
+	(void)l;
+
+	if (!global.head)
+	{
+		/* error underflow */
+		dprintf(2, "L%u: can't pop an empty stack\n", l);
+		global.quit = EXIT_FAILURE;
+		return;
+	}
+	if (global.mode == STACK)
+		pop();
+	else
+		dequeue();
+}
+
+/**
+ * swap_handler - handles swap operation
+ * @s: pointer to stack
+ * @l: line number
+ */
+void swap_handler(stack_t **s, unsigned int l)
+{
+	(void)s;
+	if (!global.head || !global.head->next)
+	{
+		dprintf(2, "L%u: can't swap, stack too short\n", l);
+		global.quit = EXIT_FAILURE;
+		return;
+	}
+	swap();
+}
+
+/**
+ * pall_handler - handles pall operation
+ * @s: pointer to stack
+ * @l: line number
+ */
+void pall_handler(stack_t **s, unsigned int l)
+{
+	(void)s;
+	(void)l;
+
+	if (global.mode == QUEUE)
+		print_queue();
+	else
+		print_stack();
+}
+
+/**
+ * nop_handler - handles nop operation
+ * @s: pointer to stack
+ * @l: line number
+ */
+void nop_handler(stack_t **s, unsigned int l)
+{
+	(void)s;
+	(void)l;
 }
